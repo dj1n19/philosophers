@@ -6,7 +6,7 @@
 /*   By: bgenie <bgenie@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/29 18:05:18 by bgenie            #+#    #+#             */
-/*   Updated: 2022/09/02 18:29:12 by bgenie           ###   ########.fr       */
+/*   Updated: 2022/09/12 18:52:30 by bgenie           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,9 @@ static void    print_log(t_philo *philo)
     long long unsigned int  st;
     unsigned int            id;
 
+    // pthread_mutex_lock(philo->datas->writer);
     id = philo->id;
     st = philo->datas->timers->start_time;
-    printf("PRINT:GNAH\n");
-    printf("===%d\n", pthread_mutex_lock(philo->datas->writer));
     if (philo->state == FORK)
         printf("\e[32m%08llu    %-3u    %s\n", get_time() - st, id, FORK_MSG);
     else if (philo->state == EATING)
@@ -31,27 +30,25 @@ static void    print_log(t_philo *philo)
         printf("\e[35m%08llu    %-3u    %s\n", get_time() - st, id, THINK_MSG);
     else if (philo->state == DEAD)
         printf("\e[31m%08llu    %-3u    %s\n", get_time() - st, id, DEAD_MSG);
-    printf("===%d\n", pthread_mutex_unlock(philo->datas->writer));
+    // pthread_mutex_unlock(philo->datas->writer);
 }
 
 static void eat(t_philo *philo)
 {
     if (philo->id % 2 == 0 && philo->state != DEAD)
     {
-        printf(">EVEN<%d\n", pthread_mutex_lock(philo->datas->rfork));
+        pthread_mutex_lock(philo->datas->rfork);
         philo->state = FORK;
-        printf("EVEN:GNAH\n");
         print_log(philo);
-        printf("<EVEN>%d\n", pthread_mutex_lock(philo->datas->lfork));
+        pthread_mutex_lock(philo->datas->lfork);
         print_log(philo);
     }
     else if (philo->state != DEAD)
     {
-        printf(">ODD<%d\n", pthread_mutex_lock(philo->datas->lfork));
+        pthread_mutex_lock(philo->datas->lfork);
         philo->state = FORK;
-        printf("ODD:GNAH\n");
         print_log(philo);
-        printf("<ODD>%d\n", pthread_mutex_lock(philo->datas->rfork));
+        pthread_mutex_lock(philo->datas->rfork);
         print_log(philo);
     }
     philo->datas->last_meal = get_time();
@@ -59,9 +56,9 @@ static void eat(t_philo *philo)
         --philo->datas->eat_count;
     philo->state = EATING;
     print_log(philo); 
-    //usleep(philo->datas->timers->time_to_eat * 1000);
-    printf("=%d\n", pthread_mutex_unlock(philo->datas->rfork));
-    printf("=%d\n", pthread_mutex_unlock(philo->datas->lfork));
+    ft_sleep(philo->datas->timers->time_to_eat);
+    pthread_mutex_unlock(philo->datas->rfork);
+    pthread_mutex_unlock(philo->datas->lfork);
 }
 
 static void  dodo(t_philo *philo)
@@ -70,31 +67,38 @@ static void  dodo(t_philo *philo)
     {
         philo->state = SLEEPING;
         print_log(philo);
+        ft_sleep(philo->datas->timers->time_to_sleep);
     }
-    //usleep(philo->datas->timers->time_to_sleep * 1000);
 }
 
-static int is_dead(t_philo *philo)
+void *is_dead(t_datas *datas)
 {
     long long unsigned int  st;
-    
-    st = philo->datas->timers->start_time;
-    //printf("%llu : %llu + %llu (%llu)\n", get_time(), philo->datas->last_meal, philo->datas->timers->time_to_die, philo->datas->last_meal + philo->datas->timers->time_to_die);
-    if (get_time() > philo->datas->last_meal + philo->datas->timers->time_to_die)
+    unsigned int            i;
+    t_philo                 *philo;
+
+    st = datas->timers.start_time;
+    i = 0;
+    while (i < datas->nbr_philo)
     {
-        philo->state = DEAD;
-        print_log(philo);
-        exit(EXIT_FAILURE);
+        philo = &datas->philos[i];
+        if (get_time() > philo->datas->last_meal + philo->datas->timers->time_to_die)
+        {
+            philo->state = DEAD;   
+            print_log(philo);
+            return (datas);
+        }
+        ++i;
+        if (i == datas->nbr_philo)
+            i = 0;
     }
-    return (0);
+    return (datas);
 }
 
 void *loop(t_philo *philo)
 {
     while (1)
     {
-        if (is_dead(philo))
-            break ;
         eat(philo);
         if (philo->datas->eat_count == 0)
             break ;
@@ -104,7 +108,7 @@ void *loop(t_philo *philo)
             philo->state = THINKING;
             print_log(philo);
         }
-        //usleep(50);
     }
+    // printf("EXIT THREAD %d\n", philo->id);
     return (NULL);
 }
