@@ -6,7 +6,7 @@
 /*   By: bgenie <bgenie@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/02 16:15:57 by bgenie            #+#    #+#             */
-/*   Updated: 2022/09/12 18:45:34 by bgenie           ###   ########.fr       */
+/*   Updated: 2022/11/29 17:07:51 by bgenie           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,12 +30,12 @@ int	ft_atoi(const char *str)
 	return (nbr);
 }
 
-long long unsigned int get_time(void)
+long long unsigned int	get_time(void)
 {
-    struct timeval  timev;
+	struct timeval	timev;
 
-    gettimeofday(&timev, NULL);
-    return ((timev.tv_sec * 1000) + (timev.tv_usec / 1000));
+	gettimeofday(&timev, NULL);
+	return ((timev.tv_sec * 1000) + (timev.tv_usec / 1000));
 }
 
 void	ft_sleep(long long unsigned int time)
@@ -44,5 +44,5 @@ void	ft_sleep(long long unsigned int time)
 
 	begin = get_time();
 	while (get_time() - begin < time)
-		usleep(50);
+		usleep(10);
 }

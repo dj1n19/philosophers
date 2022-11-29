@@ -6,7 +6,7 @@
 /*   By: bgenie <bgenie@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/11 17:42:41 by bgenie            #+#    #+#             */
-/*   Updated: 2022/09/11 19:44:55 by bgenie           ###   ########.fr       */
+/*   Updated: 2022/11/29 16:43:16 by bgenie           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,5 @@ void	free_datas(t_datas *datas)
 		return ;
 	free_philos(datas->philos, datas->nbr_philo);
 	free_forks(datas->forks, datas->nbr_philo);
-	pthread_mutex_destroy(datas->writer);
-    free(datas->writer);
 	free(datas);
 }
